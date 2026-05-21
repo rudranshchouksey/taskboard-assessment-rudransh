@@ -12,8 +12,9 @@ const USER_ID    = "user_1";
 // ReferenceError ("Cannot access X before initialization").
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    task:    { findUnique: vi.fn() },
-    comment: { findMany: vi.fn(), create: vi.fn() },
+    task:     { findUnique: vi.fn() },
+    comment:  { findMany: vi.fn(), create: vi.fn() },
+    activity: { create: vi.fn().mockResolvedValue({}) },
   },
 }));
 

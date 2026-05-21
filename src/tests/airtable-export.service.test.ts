@@ -205,18 +205,16 @@ describe("exportTasksToAirtable — error isolation", () => {
   it("returns exported = created + updated even when some fail", async () => {
     const tasks = Array.from({ length: 3 }, (_, i) => makeTask(`t${i}`));
     const table = makeMockTable([]);
-    (table.create as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce([]) // first batch (t0) ok
-      .mockRejectedValueOnce({ statusCode: 400, message: "err" }); // second call never happens with 3 tasks in 1 batch
-    // Actually all 3 fit in one batch; let's test with first batch failing half
-    // Re-test: 1 task fails to keep it simple
-    (table.create as ReturnType<typeof vi.fn>)
-      .mockRejectedValue({ statusCode: 400, message: "err" });
+    (table.create as ReturnType<typeof vi.fn>).mockRejectedValue({
+      statusCode: 400,
+      message: "err",
+    });
     (getAirtableTable as ReturnType<typeof vi.fn>).mockReturnValue(table);
 
     const s = await exportTasksToAirtable(tasks);
 
     expect(s.exported).toBe(s.created + s.updated);
     expect(s.failed).toBe(3);
+    expect(s.errors).toHaveLength(3);
   });
 });
