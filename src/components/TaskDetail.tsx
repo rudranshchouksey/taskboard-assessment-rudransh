@@ -36,7 +36,7 @@ export function TaskDetail({ task, projectId, members, onClose }: Props) {
   const myMembership = members.find((m) => m.user.id === currentUser?.id);
   const canComment = myMembership?.role === "admin" || myMembership?.role === "member";
 
-  const { data: commentsData, isLoading: commentsLoading } = useQuery({
+  const { data: commentsData, isLoading: commentsLoading, isError: commentsError } = useQuery({
     queryKey: ["comments", task.id],
     queryFn: () => apiFetch<{ comments: ApiComment[] }>(`/api/tasks/${task.id}/comments`),
   });
@@ -50,9 +50,9 @@ export function TaskDetail({ task, projectId, members, onClose }: Props) {
     onSuccess: () => {
       setCommentBody("");
       queryClient.invalidateQueries({ queryKey: ["comments", task.id] });
-      // Scroll to bottom after refetch settles
       setTimeout(() => {
-        commentListRef.current?.scrollTo({ top: commentListRef.current.scrollHeight, behavior: "smooth" });
+        const el = commentListRef.current;
+        if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
       }, 100);
     },
     onError: (err) => setCommentError(err instanceof Error ? err.message : "post failed"),
@@ -204,7 +204,10 @@ export function TaskDetail({ task, projectId, members, onClose }: Props) {
             {commentsLoading && (
               <p className="text-xs text-muted">loading…</p>
             )}
-            {!commentsLoading && commentsData?.comments.length === 0 && (
+            {commentsError && (
+              <p className="text-xs text-red-400">failed to load comments</p>
+            )}
+            {!commentsLoading && !commentsError && commentsData?.comments.length === 0 && (
               <p className="text-xs text-muted">no comments yet</p>
             )}
             {commentsData?.comments.map((c) => (

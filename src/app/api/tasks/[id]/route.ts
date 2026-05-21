@@ -27,6 +27,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const existing = await prisma.task.findUnique({ where: { id } });
   if (!existing) return notFound("task not found");
 
+  const membership = await getProjectMembership(user.id, existing.projectId);
+  if (!membership) return forbidden("you are not a member of this project");
+  if (!canEditTasks(membership.role)) return forbidden("viewers cannot edit tasks");
+
   const task = await prisma.task.update({
     where: { id },
     data: parsed.data,

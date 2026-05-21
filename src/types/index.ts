@@ -24,7 +24,7 @@ export type ApiTask = {
 export type ApiProjectMember = {
   id: string;
   role: Role;
-  user: ApiUser & { passwordHash?: string };
+  user: ApiUser;
 };
 
 export type ApiProjectDetail = {
@@ -32,7 +32,7 @@ export type ApiProjectDetail = {
   name: string;
   description: string | null;
   ownerId: string;
-  owner: ApiUser & { passwordHash?: string };
+  owner: ApiUser;
   memberships: ApiProjectMember[];
   tasks: ApiTask[];
   createdAt: string;
