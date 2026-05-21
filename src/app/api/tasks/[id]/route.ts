@@ -10,6 +10,7 @@ import {
   canEditTasks,
 } from "@/lib/auth";
 import { updateTaskSchema } from "@/schemas/task";
+import { recordActivity } from "@/lib/activity";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -33,6 +34,26 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       assignee: { select: { id: true, name: true, email: true } },
     },
   });
+
+  if (parsed.data.status !== undefined && parsed.data.status !== existing.status) {
+    recordActivity({
+      projectId: existing.projectId,
+      taskId:    id,
+      actorId:   user.id,
+      type:      "status_changed",
+      meta:      { taskTitle: existing.title, from: existing.status, to: parsed.data.status },
+    });
+  }
+
+  if (parsed.data.assigneeId !== undefined && parsed.data.assigneeId !== existing.assigneeId) {
+    recordActivity({
+      projectId: existing.projectId,
+      taskId:    id,
+      actorId:   user.id,
+      type:      "assignee_changed",
+      meta:      { taskTitle: existing.title, fromId: existing.assigneeId, toId: parsed.data.assigneeId },
+    });
+  }
 
   return NextResponse.json({ task });
 }

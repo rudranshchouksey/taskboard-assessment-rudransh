@@ -10,6 +10,7 @@ import {
   canEditTasks,
 } from "@/lib/auth";
 import { createCommentSchema } from "@/schemas/comment";
+import { recordActivity } from "@/lib/activity";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -62,6 +63,14 @@ export async function POST(req: NextRequest, { params }: Params) {
       body: parsed.data.body,
     },
     include: { author: { select: AUTHOR_SELECT } },
+  });
+
+  recordActivity({
+    projectId: task.projectId,
+    taskId:    taskId,
+    actorId:   user.id,
+    type:      "comment_added",
+    meta:      { taskTitle: task.title, preview: parsed.data.body.slice(0, 80) },
   });
 
   return NextResponse.json({ comment }, { status: 201 });

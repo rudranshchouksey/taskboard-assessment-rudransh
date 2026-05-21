@@ -8,8 +8,49 @@ import { apiFetch, getToken } from "@/lib/api-client";
 import { Header } from "@/components/Header";
 import { StatusColumn } from "@/components/StatusColumn";
 import { TaskDetail } from "@/components/TaskDetail";
-import type { ApiProjectDetail, ApiTask, TaskStatus } from "@/types";
-import { STATUS_ORDER } from "@/types";
+import type { ApiActivity, ApiProjectDetail, ApiProjectMember, ApiTask, TaskStatus } from "@/types";
+import { STATUS_LABELS, STATUS_ORDER } from "@/types";
+
+function formatRelative(iso: string): string {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
+
+function formatActivity(a: ApiActivity, members: ApiProjectMember[]): string {
+  const meta = a.meta;
+  const actor = a.actor.name;
+  const title = String(meta.taskTitle ?? "a task");
+
+  switch (a.type) {
+    case "task_created":
+      return `${actor} created "${title}"`;
+
+    case "status_changed": {
+      const from = STATUS_LABELS[meta.from as keyof typeof STATUS_LABELS] ?? meta.from;
+      const to   = STATUS_LABELS[meta.to   as keyof typeof STATUS_LABELS] ?? meta.to;
+      return `${actor} moved "${title}" from ${from} to ${to}`;
+    }
+
+    case "assignee_changed": {
+      const resolve = (id: unknown) =>
+        members.find((m) => m.user.id === id)?.user.name ?? (id ? "someone" : null);
+      const from = resolve(meta.fromId);
+      const to   = resolve(meta.toId);
+      if (!to)   return `${actor} unassigned "${title}"`;
+      if (!from) return `${actor} assigned "${title}" to ${to}`;
+      return `${actor} reassigned "${title}" from ${from} to ${to}`;
+    }
+
+    case "comment_added":
+      return `${actor} commented on "${title}"`;
+
+    default:
+      return `${actor} updated "${title}"`;
+  }
+}
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -30,6 +71,12 @@ export default function ProjectPage({ params }: PageProps) {
   const { data, isLoading, error: queryError } = useQuery({
     queryKey: ["project", id],
     queryFn: () => apiFetch<{ project: ApiProjectDetail }>(`/api/projects/${id}`),
+  });
+
+  const { data: activityData } = useQuery({
+    queryKey: ["activity", id],
+    queryFn:  () => apiFetch<{ activities: ApiActivity[] }>(`/api/projects/${id}/activity`),
+    enabled:  !!data,
   });
 
   const createTask = useMutation({
@@ -159,6 +206,26 @@ export default function ProjectPage({ params }: PageProps) {
                     <span>{m.user.name}</span>
                     <span className="text-xs text-muted">
                       {m.user.email} · {m.role}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="mt-10">
+              <h2 className="text-sm font-medium mb-3">activity</h2>
+              <ul className="bg-surface border border-border rounded-lg divide-y divide-border">
+                {!activityData && (
+                  <li className="px-4 py-3 text-xs text-muted">loading…</li>
+                )}
+                {activityData?.activities.length === 0 && (
+                  <li className="px-4 py-3 text-xs text-muted">no activity yet</li>
+                )}
+                {activityData?.activities.map((a) => (
+                  <li key={a.id} className="px-4 py-3 flex items-center justify-between text-sm">
+                    <span>{formatActivity(a, project.memberships)}</span>
+                    <span className="text-xs text-muted shrink-0 ml-4">
+                      {formatRelative(a.createdAt)}
                     </span>
                   </li>
                 ))}

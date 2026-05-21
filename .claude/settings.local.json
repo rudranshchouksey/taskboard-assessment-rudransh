@@ -1,10 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir -p \"c:/Users/ad/Desktop/Assigment/q-taskboard-assessment/src/app/api/tasks/[id]/comments\")"
+      "Bash(mkdir -p \"c:/Users/ad/Desktop/Assigment/q-taskboard-assessment/src/app/api/tasks/[id]/comments\")",
+      "Bash(mkdir -p \"c:/Users/ad/Desktop/Assigment/q-taskboard-assessment/src/app/api/projects/[id]/activity\")"
     ],
     "additionalDirectories": [
-      "c:\\Users\\ad\\Desktop\\Assigment\\q-taskboard-assessment\\src\\app\\api\\tasks\\[id]"
+      "c:\\Users\\ad\\Desktop\\Assigment\\q-taskboard-assessment\\src\\app\\api\\tasks\\[id]",
+      "c:\\Users\\ad\\Desktop\\Assigment\\q-taskboard-assessment\\src\\app\\api\\projects\\[id]"
     ]
   }
 }

@@ -20,6 +20,13 @@ enum TaskStatus {
   done
 }
 
+enum ActivityType {
+  task_created
+  status_changed
+  assignee_changed
+  comment_added
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String
@@ -33,6 +40,7 @@ model User {
   assignedTasks  Task[]       @relation("TaskAssignee")
   createdTasks   Task[]       @relation("TaskCreator")
   comments       Comment[]
+  activities     Activity[]
 
   @@map("users")
 }
@@ -48,6 +56,7 @@ model Project {
   owner       User         @relation("ProjectOwner", fields: [ownerId], references: [id])
   memberships Membership[]
   tasks       Task[]
+  activities  Activity[]
 
   @@map("projects")
 }
@@ -100,4 +109,20 @@ model Comment {
 
   @@index([taskId])
   @@map("comments")
+}
+
+model Activity {
+  id        String       @id @default(cuid())
+  projectId String       @map("project_id")
+  taskId    String?      @map("task_id")
+  actorId   String       @map("actor_id")
+  type      ActivityType
+  meta      Json
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actor   User    @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@map("activities")
 }

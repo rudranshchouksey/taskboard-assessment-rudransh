@@ -9,6 +9,7 @@ import {
   canEditTasks,
 } from "@/lib/auth";
 import { createTaskSchema } from "@/schemas/task";
+import { recordActivity } from "@/lib/activity";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -78,6 +79,14 @@ export async function POST(req: NextRequest, { params }: Params) {
     include: {
       assignee: { select: { id: true, name: true, email: true } },
     },
+  });
+
+  recordActivity({
+    projectId,
+    taskId:  task.id,
+    actorId: user.id,
+    type:    "task_created",
+    meta:    { taskTitle: task.title },
   });
 
   return NextResponse.json({ task }, { status: 201 });
