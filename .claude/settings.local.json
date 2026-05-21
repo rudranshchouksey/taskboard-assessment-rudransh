@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"c:/Users/ad/Desktop/Assigment/q-taskboard-assessment/src/app/api/tasks/[id]/comments\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\ad\\Desktop\\Assigment\\q-taskboard-assessment\\src\\app\\api\\tasks\\[id]"
+    ]
+  }
+}
