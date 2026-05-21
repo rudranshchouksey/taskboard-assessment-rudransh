@@ -1,5 +1,5 @@
 RECORDING.md
-Screen recording link: https://youtu.be/dnjlUlGpTkQ
+Screen recording link: https://youtu.be/hcTjoGYq1GY
 
 Notes:
 
