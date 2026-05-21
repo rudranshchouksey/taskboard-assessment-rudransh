@@ -1,5 +1,12 @@
 # Ensure AI conversation logs are tracked as text
+.gitattributes text eol=lf
 .ai-conversations/** text
 .claude/** text
 .cursor/** text
 .aider.chat.history.md text
+
+# Docker/Linux scripts must keep LF endings even on Windows.
+bin/* text eol=lf
+*.sh text eol=lf
+Dockerfile text eol=lf
+docker-compose.yml text eol=lf
